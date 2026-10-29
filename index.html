@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Guest List — Shawn & Ruchi</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Pinyon+Script&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--burg:#5a1428;--burg2:#3f0d1c;--gold:#b8933f;--gold2:#e6c97f;--ivory:#fbf7ee;--card:#fffdf8;--line:#e3d5b0;--ink:#6b5a3a;--no:#9a7f6b}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--ivory);color:var(--ink);font:500 17px/1.5 'Cormorant Garamond',Georgia,serif;padding:0 0 env(safe-area-inset-bottom,0)}
+.hero{background:linear-gradient(var(--burg),var(--burg2));color:#f1e4c3;text-align:center;padding:calc(env(safe-area-inset-top,0px) + 34px) 20px 70px}
+.hero .mono{font:600 34px/1 'Cinzel',serif;color:var(--gold2);letter-spacing:4px}
+.hero h1{font:400 44px/1.15 'Pinyon Script',cursive;color:var(--gold2);margin:8px 0 2px}
+.hero p{margin:0;font:400 12px 'Cinzel',serif;letter-spacing:3px;text-transform:uppercase;color:#d9c79a}
+.wrap{max-width:660px;margin:-44px auto 0;padding:0 16px 48px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--gold);border-radius:16px;padding:14px 6px 12px;text-align:center;box-shadow:0 8px 22px #5a142818}
+.stat b{display:block;font:400 32px/1.1 'Cinzel',serif;color:var(--burg)}
+.stat span{font:400 10.5px 'Cinzel',serif;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center}
+.tools input{flex:1 1 100%;padding:11px 16px;border-radius:999px;border:1px solid var(--line);background:#fff;font:500 17px 'Cormorant Garamond',Georgia,serif;color:var(--burg);outline:none}
+.tools input:focus{border-color:var(--gold)}
+button{font:600 11px 'Cinzel',serif;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:1px solid var(--gold);background:transparent;color:var(--burg);border-radius:999px;padding:9px 16px}
+button:hover{background:#f2e7cf}
+.tab.active{background:var(--burg);color:var(--gold2);border-color:var(--burg)}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+li{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 16px}
+.who{min-width:0}.who strong{display:block;font:600 19px/1.25 'Cormorant Garamond',Georgia,serif;color:var(--burg);overflow-wrap:anywhere}
+.who small{font:400 11px 'Cinzel',serif;letter-spacing:1px;color:#a08a5a}
+.badge{white-space:nowrap;font:600 11px 'Cinzel',serif;letter-spacing:1.5px;text-transform:uppercase;padding:6px 13px;border-radius:999px}
+.badge.ok{background:var(--burg);color:var(--gold2)}
+.badge.no{background:transparent;color:var(--no);border:1px solid var(--no)}
+.empty{text-align:center;padding:34px 0;color:var(--ink);font-style:italic}
+#status{text-align:center;color:var(--ink);font-size:15px;margin-top:16px}
+</style>
+</head>
+<body>
+<header class="hero"><div class="mono">S &amp; R</div><h1>Guest List</h1><p>Shawn &amp; Ruchi · 17 December 2026</p></header>
+<div class="wrap">
+ <div class="stats">
+  <div class="stat"><b id="sAttend">0</b><span>Guests attending</span></div>
+  <div class="stat"><b id="sYes">0</b><span>Replied yes</span></div>
+  <div class="stat"><b id="sNo">0</b><span>Declined</span></div>
+ </div>
+ <div class="tools">
+  <input id="q" type="search" placeholder="Search by name…" aria-label="Search by name">
+  <button class="tab active" data-f="all">All</button>
+  <button class="tab" data-f="yes">Attending</button>
+  <button class="tab" data-f="no">Declined</button>
+  <button id="copyBtn" type="button">Copy names</button>
+  <button id="exportBtn" type="button">Export CSV</button>
+ </div>
+ <ul id="list"></ul>
+ <div id="status">Loading…</div>
+</div>
+
+<script>
+var all=[],filter='all';
+function $(id){return document.getElementById(id)}
+function isYes(r){return r.status==='Attending'}
+function fmtTime(ts){if(!ts)return'';try{return ts.toDate().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}catch(_){return''}}
+function getFiltered(){var t=$('q').value.trim().toLowerCase();return all.filter(function(r){return(filter==='all'||(filter==='yes')===isYes(r))&&(!t||(r.name||'').toLowerCase().indexOf(t)>-1)})}
+function render(){
+ var yes=all.filter(isYes),no=all.filter(function(r){return!isYes(r)});
+ $('sAttend').textContent=yes.reduce(function(n,r){return n+(r.guestsCount||1)},0);
+ $('sYes').textContent=yes.length;$('sNo').textContent=no.length;
+ var rows=getFiltered(),ul=$('list');ul.innerHTML='';
+ if(!rows.length){var d=document.createElement('div');d.className='empty';d.textContent=all.length?'No results':'No replies yet';ul.appendChild(d);return}
+ rows.forEach(function(r){
+  var li=document.createElement('li'),who=document.createElement('div');who.className='who';
+  var n=document.createElement('strong');n.textContent=r.name||'(no name)';
+  var t=document.createElement('small');t.textContent=fmtTime(r.createdAt);who.append(n,t);
+  var b=document.createElement('span'),y=isYes(r);b.className='badge '+(y?'ok':'no');b.textContent=y?('Attending · '+(r.guestsCount||1)):'Declined';
+  li.append(who,b);ul.appendChild(li)})}
+window.__setData=function(rows){all=rows;$('status').textContent='';render()};
+$('q').addEventListener('input',render);
+document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});b.classList.add('active');filter=b.dataset.f;render()})});
+$('copyBtn').addEventListener('click',function(){
+ var lines=getFiltered().map(function(r){return(r.name||'(no name)')+' - '+(isYes(r)?'Attending ('+(r.guestsCount||1)+')':'Declined')});
+ var done=function(t){$('copyBtn').textContent=t;setTimeout(function(){$('copyBtn').textContent='Copy names'},1800)};
+ (navigator.clipboard?navigator.clipboard.writeText(lines.join('\n')):Promise.reject()).then(function(){done('Copied ✓')},function(){done('Copy failed')})});
+$('exportBtn').addEventListener('click',function(){
+ var rows=getFiltered();if(!rows.length){alert('Nothing to export');return}
+ var csv='\uFEFFName,Status,Guests,Date\n';
+ rows.forEach(function(r){var y=isYes(r);csv+='"'+(r.name||'(no name)').replace(/"/g,'""')+'",'+(y?'Attending':'Declined')+','+(y?(r.guestsCount||1):0)+',"'+fmtTime(r.createdAt)+'"\n'});
+ var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download='guest_list_'+filter+'_'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a)});
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+const app=initializeApp({apiKey:"AIzaSyBxzEKOQ8NrNqgeJp1XePLEsbEKXdXHla4",authDomain:"my-wedding-cards.firebaseapp.com",projectId:"my-wedding-cards",storageBucket:"my-wedding-cards.firebasestorage.app",messagingSenderId:"844853477189",appId:"1:844853477189:web:0866c7b5e13b877e20482c"});
+const db=getFirestore(app);
+onSnapshot(query(collection(db,"rsvp_shawn_ruchi"),orderBy("createdAt","desc")),function(snap){window.__setData(snap.docs.map(function(d){return d.data()}))},function(err){console.error(err);document.getElementById('status').textContent="Couldn't load the replies. Check the collection name and the Firebase rules."});
+</script>
+</body>
+</html>
